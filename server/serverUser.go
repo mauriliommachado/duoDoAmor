@@ -6,10 +6,11 @@ import (
 	"log"
 	"fmt"
 	"encoding/json"
-	"github.com/duoDoAmor/db"
+	"github.com/mauriliommachado/duoDoAmor/db"
 	"gopkg.in/mgo.v2/bson"
 	"encoding/base64"
 	"github.com/rs/cors"
+	"github.com/mauriliommachado/duoDoAmor/client"
 )
 
 type ServerProperties struct {
@@ -59,6 +60,12 @@ func InsertUser(w http.ResponseWriter, req *http.Request) {
 	}
 	user.Admin = false
 	user.Token = base64.StdEncoding.EncodeToString([]byte(user.Email + ":" + user.Pwd))
+	summoner , err := client.FindByName(user.Name)
+	if err != nil{
+		badRequest(w, err)
+		return
+	}
+	user.Summoner = summoner
 	err = user.Persist(db.GetCollectionUsers())
 	if err != nil {
 		badRequest(w, err)

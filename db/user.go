@@ -3,18 +3,20 @@ package db
 import (
 	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/mgo.v2"
-	"github.com/gomodels/dbutil"
+	"github.com/mauriliommachado/gomodels/dbutil"
 	"log"
+	"github.com/mauriliommachado/duoDoAmor/client"
 )
 
 type User struct {
 	Id    bson.ObjectId `json:"id" bson:"_id,omitempty"`
-	SummonerId int64 `json:"summonerId"`
+	SummonerId int `json:"summonerId"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
 	Pwd   string `json:"pwd"`
 	Token string `json:"token"`
 	Admin bool
+	Summoner client.Summoner `json:"summoner"`
 }
 
 

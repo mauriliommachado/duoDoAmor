@@ -3,7 +3,7 @@ package main
 import (
 	"./db"
 	"os"
-	"github.com/duoDoAmor/server"
+	"./server"
 )
 
 func main() {
