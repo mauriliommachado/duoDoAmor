@@ -6,11 +6,11 @@ import (
 	"log"
 	"fmt"
 	"encoding/json"
-	"github.com/mauriliommachado/duoDoAmor/db"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/duoDoAmor/db"
 	"encoding/base64"
 	"github.com/rs/cors"
-	"github.com/mauriliommachado/duoDoAmor/client"
+	"strconv"
+	"github.com/duoDoAmor/client"
 )
 
 type ServerProperties struct {
@@ -24,9 +24,17 @@ func DeleteUser(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	var user db.User
-	id := req.URL.Query().Get(":id")
-	err := user.FindById(db.GetCollectionUsers(), bson.ObjectIdHex(id))
-	user.Remove(db.GetCollectionUsers())
+	id,err := strconv.Atoi(req.URL.Query().Get(":id"))
+	if err != nil {
+		badRequest(w, err)
+		return
+	}
+	err = user.FindById(id)
+	if err != nil {
+		badRequest(w, err)
+		return
+	}
+	user.Remove()
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
@@ -43,10 +51,10 @@ func ResponseWithJSON(w http.ResponseWriter, json []byte, code int) {
 }
 
 func InsertUser(w http.ResponseWriter, req *http.Request) {
-	if !validAuthHeader(req) {
+	/*if !validAuthHeader(req) {
 		unauthorized(w)
 		return
-	}
+	}*/
 	var user db.User
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(&user)
@@ -54,25 +62,26 @@ func InsertUser(w http.ResponseWriter, req *http.Request) {
 		badRequest(w, err)
 		return
 	}
-	if len(user.Id.Hex()) > 0 {
-		badRequest(w, nil)
-		return
-	}
 	user.Admin = false
-	user.Token = base64.StdEncoding.EncodeToString([]byte(user.Email + ":" + user.Pwd))
+	user.Token = base64.StdEncoding.EncodeToString([]byte(user.Name + ":" + user.Pwd))
 	summoner , err := client.FindByName(user.Name)
 	if err != nil{
 		badRequest(w, err)
 		return
 	}
-	user.Summoner = summoner
-	err = user.Persist(db.GetCollectionUsers())
+	user.SummonerId = summoner.Id
+	err = 	summoner.Persist()
+	if err != nil {
+		badRequest(w, err)
+		return
+	}
+	err = user.Persist()
 	if err != nil {
 		badRequest(w, err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Location", req.URL.Path+"/"+user.Id.Hex())
+	w.Header().Set("Location", req.URL.Path+"/"+strconv.Itoa(user.Id))
 	w.WriteHeader(http.StatusCreated)
 }
 
@@ -86,8 +95,8 @@ func UpdateUser(w http.ResponseWriter, req *http.Request) {
 
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(&user)
-	userUp.FindById(db.GetCollectionUsers(), user.Id)
-	if len(userUp.Id.Hex()) == 0 {
+	userUp.FindById(user.Id)
+	if len(string(userUp.Id)) == 0 {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -97,7 +106,7 @@ func UpdateUser(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	user.Token = base64.StdEncoding.EncodeToString([]byte(user.Email + ":" + user.Pwd))
-	err = user.Merge(db.GetCollectionUsers())
+	err = user.Merge()
 	if err != nil {
 		badRequest(w, err)
 		return
@@ -112,7 +121,7 @@ func FindAllUsers(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	var users db.Users
-	users, err := users.FindAll(db.GetCollectionUsers())
+	users, err := users.FindAll()
 	if err != nil {
 		badRequest(w, err)
 		return
@@ -130,7 +139,7 @@ func validAuthHeader(req *http.Request) bool {
 	}
 	var user db.User
 	user.Token = auth[6:]
-	if user.FindHash(db.GetCollectionUsers()){
+	if user.FindHash(){
 		return true
 	}else{
 		return false
@@ -139,8 +148,13 @@ func validAuthHeader(req *http.Request) bool {
 
 func FindById(w http.ResponseWriter, req *http.Request) {
 	var user db.User
-	id := req.URL.Query().Get(":id")
-	err := user.FindById(db.GetCollectionUsers(), bson.ObjectIdHex(id))
+	id,err := strconv.Atoi(req.URL.Query().Get(":id"))
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	err = user.FindById(id)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
@@ -154,7 +168,7 @@ func Validate(w http.ResponseWriter, req *http.Request) {
 	var user db.User
 	hash := req.URL.Query().Get(":hash")
 	user.Token = hash
-	if user.FindHash(db.GetCollectionUsers()) {
+	if user.FindHash() {
 		resp, _ := json.Marshal(user)
 		ResponseWithJSON(w, resp, http.StatusOK)
 	} else {

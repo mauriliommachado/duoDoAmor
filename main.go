@@ -1,9 +1,9 @@
 package main
 
 import (
-	"./db"
 	"os"
-	"./server"
+	"github.com/duoDoAmor/server"
+	"github.com/duoDoAmor/db"
 )
 
 func main() {

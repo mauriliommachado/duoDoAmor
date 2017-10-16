@@ -1,23 +1,23 @@
 package db
 
 import (
-	"gopkg.in/mgo.v2"
+	"database/sql"
+	_ "github.com/lib/pq"
+	"log"
 	"fmt"
 )
 
-var fSession mgo.Session
+var db *sql.DB
 
 func Start() {
-	session, err := mgo.Dial("localhost")
+	var err error
+	db, err = sql.Open("postgres", "postgres://postgres:admin@localhost/duo?sslmode=disable")
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	fSession = *session
-	fmt.Println("Sessão do banco criada")
+	fmt.Printf("Conectado\n")
 }
 
-func GetCollectionUsers() (c *mgo.Collection) {
-	s := fSession.Copy()
-	c = s.DB("duolol").C("users")
-	return c
+func GetDB() (c *sql.DB) {
+	return db
 }
