@@ -3,16 +3,17 @@ package db
 import (
 	"log"
 	"strconv"
+	"database/sql"
 )
 
 type User struct {
-	Id    int `json:"id" bson:"_id,omitempty"`
-	SummonerId int `json:"summonerId"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Pwd   string `json:"pwd"`
-	Token string `json:"token"`
-	Admin bool
+	Id    int `json:"id,omitempty"`
+	SummonerId int `json:"summonerId,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Email string `json:"email,omitempty"`
+	Pwd   string `json:"pwd,omitempty"`
+	Token string `json:"token,omitempty"`
+	Admin bool `json:"admin,omitempty"`
 }
 
 
@@ -25,7 +26,7 @@ func (user *User) Persist() error {
 	if err != nil {
 		return err
 	}
-	log.Println("Usuário", user.Name, "inserido")
+	log.Println("Usuário", user.Name, "inserido com id "+ strconv.Itoa(user.Id))
 	return nil
 }
 
@@ -70,12 +71,18 @@ func (user *User) FindLogin() bool {
 }
 
 func (user *User) FindHash() bool {
-	//defer dbutil.CloseSession(c)
-	//err := c.Find(bson.M{"token": user.Token}).One(&user)
-	//if err != nil {
-	//	log.Println(err,user.Token)
-	//	return false
-	//}
+	s := GetDB()
+	row := s.QueryRow("SELECT id, token, name, admin FROM duo.\"user\" WHERE token = $1", user.Token)
+	err := row.Scan(&user.Id, &user.Token, &user.Name, &user.Admin)
+	if err == sql.ErrNoRows {
+		log.Println(err)
+		log.Println(user.Token)
+		return false
+	} else if err != nil {
+		log.Println(err)
+		log.Println(user.Token)
+		return false
+	}
 	return true
 }
 

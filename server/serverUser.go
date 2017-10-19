@@ -3,20 +3,14 @@ package server
 import (
 	"github.com/bmizerany/pat"
 	"net/http"
-	"log"
-	"fmt"
 	"encoding/json"
 	"github.com/duoDoAmor/db"
 	"encoding/base64"
-	"github.com/rs/cors"
 	"strconv"
 	"github.com/duoDoAmor/client"
+	"strings"
 )
 
-type ServerProperties struct {
-	Port    string
-	Address string
-}
 
 func DeleteUser(w http.ResponseWriter, req *http.Request) {
 	if !validAuthHeader(req) {
@@ -43,18 +37,11 @@ func DeleteUser(w http.ResponseWriter, req *http.Request) {
 	ResponseWithJSON(w, nil, http.StatusNoContent)
 }
 
-
-func ResponseWithJSON(w http.ResponseWriter, json []byte, code int) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(code)
-	w.Write(json)
-}
-
 func InsertUser(w http.ResponseWriter, req *http.Request) {
-	/*if !validAuthHeader(req) {
+	if !validAuthHeader(req) {
 		unauthorized(w)
 		return
-	}*/
+	}
 	var user db.User
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(&user)
@@ -63,7 +50,7 @@ func InsertUser(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	user.Admin = false
-	user.Token = base64.StdEncoding.EncodeToString([]byte(user.Name + ":" + user.Pwd))
+	user.Token = base64.StdEncoding.EncodeToString([]byte(strings.ToLower(user.Name)+ ":" + user.Pwd))
 	summoner , err := client.FindByName(user.Name)
 	if err != nil{
 		badRequest(w, err)
@@ -105,7 +92,7 @@ func UpdateUser(w http.ResponseWriter, req *http.Request) {
 		badRequest(w, err)
 		return
 	}
-	user.Token = base64.StdEncoding.EncodeToString([]byte(user.Email + ":" + user.Pwd))
+	user.Token = base64.StdEncoding.EncodeToString([]byte(strings.ToLower(user.Name) + ":" + user.Pwd))
 	err = user.Merge()
 	if err != nil {
 		badRequest(w, err)
@@ -132,19 +119,7 @@ func FindAllUsers(w http.ResponseWriter, req *http.Request) {
 	resp, _ := json.Marshal(users)
 	ResponseWithJSON(w, resp, http.StatusOK)
 }
-func validAuthHeader(req *http.Request) bool {
-	auth := req.Header.Get("Authorization")
-	if len(auth) <= 6 {
-		return false
-	}
-	var user db.User
-	user.Token = auth[6:]
-	if user.FindHash(){
-		return true
-	}else{
-		return false
-	}
-}
+
 
 func FindById(w http.ResponseWriter, req *http.Request) {
 	var user db.User
@@ -164,42 +139,7 @@ func FindById(w http.ResponseWriter, req *http.Request) {
 	ResponseWithJSON(w, resp, http.StatusOK)
 }
 
-func Validate(w http.ResponseWriter, req *http.Request) {
-	var user db.User
-	hash := req.URL.Query().Get(":hash")
-	user.Token = hash
-	if user.FindHash() {
-		resp, _ := json.Marshal(user)
-		ResponseWithJSON(w, resp, http.StatusOK)
-	} else {
-		w.WriteHeader(http.StatusNotFound)
-	}
-}
-
-func unauthorized(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusUnauthorized)
-}
-
-func badRequest(w http.ResponseWriter, err error) {
-	log.Println(err)
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusBadRequest)
-}
-
-func StartUsers(properties ServerProperties) {
-	m := pat.New()
-	handler := cors.AllowAll().Handler(m)
-	mapEndpoints(*m, properties)
-	http.Handle("/", handler)
-	fmt.Println("servidor iniciado no endereço localhost:" + properties.Port + properties.Address)
-	err := http.ListenAndServe(":"+properties.Port, nil)
-
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
-}
-func mapEndpoints(m pat.PatternServeMux, properties ServerProperties) {
+func MapEndpointsUsers(m pat.PatternServeMux, properties ServerProperties) {
 	m.Post(properties.Address, http.HandlerFunc(InsertUser))
 	m.Put(properties.Address, http.HandlerFunc(UpdateUser))
 	m.Del(properties.Address+"/:id", http.HandlerFunc(DeleteUser))

@@ -4,11 +4,25 @@ import (
 	"os"
 	"github.com/duoDoAmor/server"
 	"github.com/duoDoAmor/db"
+	"fmt"
+	"log"
+	"github.com/rs/cors"
+	"github.com/bmizerany/pat"
+	"net/http"
 )
 
 func main() {
 	startDb()
-	server.StartUsers(server.ServerProperties{Address: "/api/users", Port: determineListenAddress()})
+	m := pat.New()
+	handler := cors.AllowAll().Handler(m)
+	server.MapEndpointsUsers(*m, server.ServerProperties{Address: "/api/users", Port: determineListenAddress()})
+	server.MapEndpointsMatchs(*m, server.ServerProperties{Address: "/api/match", Port: determineListenAddress()})
+	http.Handle("/", handler)
+	fmt.Println("servidor iniciado no endereço localhost:" + determineListenAddress())
+	err := http.ListenAndServe(":"+determineListenAddress(), nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
 }
 
 func startDb() {
