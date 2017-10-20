@@ -9,7 +9,7 @@ import (
 )
 
 const uriSummonerApi = "https://br1.api.riotgames.com/lol/summoner/v3/summoners/by-name/"
-const TOKEN = "RGAPI-1b7789b1-3c04-45c0-8006-725fd362b3d6		"
+const TOKEN = "RGAPI-884d2648-1c27-4f9d-8562-3a5cabc7faf0"
 
 type Summoner struct {
 	Id int	`json:"id"`
