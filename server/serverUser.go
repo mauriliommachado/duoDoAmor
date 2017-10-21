@@ -11,14 +11,13 @@ import (
 	"strings"
 )
 
-
 func DeleteUser(w http.ResponseWriter, req *http.Request) {
 	if !validAuthHeader(req) {
 		unauthorized(w)
 		return
 	}
 	var user db.User
-	id,err := strconv.Atoi(req.URL.Query().Get(":id"))
+	id, err := strconv.Atoi(req.URL.Query().Get(":id"))
 	if err != nil {
 		badRequest(w, err)
 		return
@@ -49,19 +48,33 @@ func InsertUser(w http.ResponseWriter, req *http.Request) {
 		badRequest(w, err)
 		return
 	}
+
 	user.Admin = false
-	user.Token = base64.StdEncoding.EncodeToString([]byte(strings.ToLower(user.Name)+ ":" + user.Pwd))
-	summoner , err := client.FindByName(user.Name)
-	if err != nil{
-		badRequest(w, err)
-		return
-	}
-	user.SummonerId = summoner.Id
-	err = 	summoner.Persist()
+	user.Token = base64.StdEncoding.EncodeToString([]byte(strings.ToLower(user.Name) + ":" + user.Pwd))
+	summoner, err := client.FindByName(user.Name)
 	if err != nil {
 		badRequest(w, err)
 		return
 	}
+	user.SummonerId = summoner.Id
+	err = summoner.Persist()
+	if err != nil {
+		badRequest(w, err)
+		return
+	}
+
+	elos, err := client.FindEloById(summoner.Id)
+	if err != nil {
+		badRequest(w, err)
+		return
+	}
+
+	err = elos.Persist()
+	if err != nil {
+		badRequest(w, err)
+		return
+	}
+
 	err = user.Persist()
 	if err != nil {
 		badRequest(w, err)
@@ -113,17 +126,16 @@ func FindAllUsers(w http.ResponseWriter, req *http.Request) {
 		badRequest(w, err)
 		return
 	}
-	for i,_ := range users{
-		users[i].Pwd=""
+	for i, _ := range users {
+		users[i].Pwd = ""
 	}
 	resp, _ := json.Marshal(users)
 	ResponseWithJSON(w, resp, http.StatusOK)
 }
 
-
 func FindById(w http.ResponseWriter, req *http.Request) {
 	var user db.User
-	id,err := strconv.Atoi(req.URL.Query().Get(":id"))
+	id, err := strconv.Atoi(req.URL.Query().Get(":id"))
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
@@ -147,5 +159,3 @@ func MapEndpointsUsers(m pat.PatternServeMux, properties ServerProperties) {
 	m.Get(properties.Address+"/:id", http.HandlerFunc(FindById))
 	m.Get(properties.Address+"/validate/:hash", http.HandlerFunc(Validate))
 }
-
-
