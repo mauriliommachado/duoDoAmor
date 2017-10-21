@@ -7,7 +7,6 @@ import (
 	"github.com/duoDoAmor/db"
 	"encoding/base64"
 	"strconv"
-	"github.com/duoDoAmor/client"
 	"strings"
 )
 
@@ -51,7 +50,7 @@ func InsertUser(w http.ResponseWriter, req *http.Request) {
 
 	user.Admin = false
 	user.Token = base64.StdEncoding.EncodeToString([]byte(strings.ToLower(user.Name) + ":" + user.Pwd))
-	summoner, err := client.FindByName(user.Name)
+	summoner, err := db.FindByName(user.Name)
 	if err != nil {
 		badRequest(w, err)
 		return
@@ -63,7 +62,7 @@ func InsertUser(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	elos, err := client.FindEloById(summoner.Id)
+	elos, err := db.FindEloById(summoner.Id)
 	if err != nil {
 		badRequest(w, err)
 		return

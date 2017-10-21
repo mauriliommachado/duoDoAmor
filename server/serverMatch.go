@@ -127,9 +127,9 @@ func FindNewMatchs(w http.ResponseWriter, req *http.Request) {
 		badRequest(w, err)
 		return
 	}
-	var user db.Match
-	user.Id = id
-	users, err := user.FindNew()
+	var match db.Match
+	match.Id = id
+	users, err := match.FindNew()
 	if err != nil {
 		badRequest(w, err)
 		return

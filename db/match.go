@@ -64,14 +64,20 @@ func (match *Match) FindById() {
 func (match *Match) FindNew() (Users, error) {
 	s := GetDB()
 	var array Users
-	rows, err := s.Query("SELECT id, \"summonerId\", name, email FROM duo.\"user\" WHERE id <> $1 AND id not in(select id_match from duo.user_match um where um.id = $1);", match.Id)
+		rows, err := s.Query("SELECT u.id, u.\"summonerId\", u.name, u.email, r.\"queueType\", r.tier, r.rank, r.\"leaguePoints\", r.wins, r.losses FROM duo.\"user\" u join duo.rank r on r.id = u.\"summonerId\" WHERE u.id <> $1 AND u.id not in(select id_match from duo.user_match um where um.id = $1) order by u.id, r.\"queueType\";", match.Id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
+		line := 0
 		var user User
-		err = rows.Scan(&user.Id,&user.SummonerId,&user.Name,&user.Email)
+		err = rows.Scan(&user.Id,&user.SummonerId,&user.Name,&user.Email,&user.Elo[line].QueueType,&user.Elo[line].Tier,&user.Elo[line].Rank,&user.Elo[line].LeaguePoints,&user.Elo[line].Wins,&user.Elo[line].Losses)
+		if err != nil {
+			return nil, err
+		}
+		line++
+		err = rows.Scan(&user.Id,&user.SummonerId,&user.Name,&user.Email,&user.Elo[line].QueueType,&user.Elo[line].Tier,&user.Elo[line].Rank,&user.Elo[line].LeaguePoints,&user.Elo[line].Wins,&user.Elo[line].Losses)
 		if err != nil {
 			return nil, err
 		}
