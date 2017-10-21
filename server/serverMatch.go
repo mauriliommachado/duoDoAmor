@@ -16,7 +16,7 @@ func DeleteMatch(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	var user db.User
-	id,err := strconv.Atoi(req.URL.Query().Get(":id"))
+	id, err := strconv.Atoi(req.URL.Query().Get(":id"))
 	if err != nil {
 		badRequest(w, err)
 		return
@@ -52,10 +52,12 @@ func InsertMatch(w http.ResponseWriter, req *http.Request) {
 		badRequest(w, err)
 		return
 	}
-	match.FindById()
-	if err != nil {
-		badRequest(w, err)
-		return
+	if match.Status {
+		match.FindById()
+		if err != nil {
+			badRequest(w, err)
+			return
+		}
 	}
 	resp, _ := json.Marshal(match)
 	ResponseWithJSON(w, resp, http.StatusCreated)
@@ -120,7 +122,7 @@ func FindNewMatchs(w http.ResponseWriter, req *http.Request) {
 		unauthorized(w)
 		return
 	}
-	id,err := strconv.Atoi(req.URL.Query().Get(":id"))
+	id, err := strconv.Atoi(req.URL.Query().Get(":id"))
 	if err != nil {
 		badRequest(w, err)
 		return
@@ -141,7 +143,5 @@ func MapEndpointsMatchs(m pat.PatternServeMux, properties ServerProperties) {
 	m.Put(properties.Address, http.HandlerFunc(UpdateMatch))
 	m.Del(properties.Address+"/:id", http.HandlerFunc(DeleteMatch))
 	m.Get(properties.Address, http.HandlerFunc(FindAllMatchs))
-	m.Get(properties.Address +"/:id/new", http.HandlerFunc(FindNewMatchs))
+	m.Get(properties.Address+"/:id/new", http.HandlerFunc(FindNewMatchs))
 }
-
-
