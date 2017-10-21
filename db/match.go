@@ -5,22 +5,20 @@ import (
 )
 
 type Match struct {
-	Id    int `json:"id"`
-	MatchId int `json:"matchId"`
-	Status bool `json:"status"`
+	Id      int  `json:"id"`
+	MatchId int  `json:"matchId"`
+	Status  bool `json:"status"`
 }
-
 
 type Matchs []Match
 
-
-func (user *Match) Persist() 	error {
+func (user *Match) Persist() error {
 	c := GetDB()
-	res, err := c.Exec("INSERT INTO duo.user_match( id, id_match, status) VALUES ($1, $2, $3);",user.Id, user.MatchId, user.Status)
+	res, err := c.Exec("INSERT INTO duo.user_match( id, id_match, status) VALUES ($1, $2, $3);", user.Id, user.MatchId, user.Status)
 	if err != nil {
 		panic(err)
 	}
-	_ , err = res.RowsAffected()
+	_, err = res.RowsAffected()
 	if err != nil {
 		panic(err)
 	}
@@ -64,24 +62,25 @@ func (match *Match) FindById() {
 func (match *Match) FindNew() (Users, error) {
 	s := GetDB()
 	var array Users
-		rows, err := s.Query("SELECT u.id, u.\"summonerId\", u.name, u.email, r.\"queueType\", r.tier, r.rank, r.\"leaguePoints\", r.wins, r.losses FROM duo.\"user\" u join duo.rank r on r.id = u.\"summonerId\" WHERE u.id <> $1 AND u.id not in(select id_match from duo.user_match um where um.id = $1) order by u.id, r.\"queueType\";", match.Id)
+	rows, err := s.Query("SELECT u.id, u.\"summonerId\", u.name, u.email, r.\"queueType\", r.tier, r.rank, r.\"leaguePoints\", r.wins, r.losses FROM duo.\"user\" u join duo.rank r on r.id = u.\"summonerId\" WHERE u.id <> $1 AND u.id not in(select id_match from duo.user_match um where um.id = $1) order by u.id, r.\"queueType\";", match.Id)
 	if err != nil {
 		return nil, err
 	}
+	var user User
+	line := 0
 	defer rows.Close()
 	for rows.Next() {
-		line := 0
-		var user User
-		err = rows.Scan(&user.Id,&user.SummonerId,&user.Name,&user.Email,&user.Elo[line].QueueType,&user.Elo[line].Tier,&user.Elo[line].Rank,&user.Elo[line].LeaguePoints,&user.Elo[line].Wins,&user.Elo[line].Losses)
+
+		err = rows.Scan(&user.Id, &user.SummonerId, &user.Name, &user.Email, &user.Elo[line].QueueType, &user.Elo[line].Tier, &user.Elo[line].Rank, &user.Elo[line].LeaguePoints, &user.Elo[line].Wins, &user.Elo[line].Losses)
 		if err != nil {
 			return nil, err
 		}
-		line++
-		err = rows.Scan(&user.Id,&user.SummonerId,&user.Name,&user.Email,&user.Elo[line].QueueType,&user.Elo[line].Tier,&user.Elo[line].Rank,&user.Elo[line].LeaguePoints,&user.Elo[line].Wins,&user.Elo[line].Losses)
-		if err != nil {
-			return nil, err
+		if line == 0 {
+			line++
+		}else {
+			array = append(array, user)
+			line = 0
 		}
-		array = append(array, user)
 	}
 	err = rows.Err()
 	if err != nil {
@@ -89,7 +88,6 @@ func (match *Match) FindNew() (Users, error) {
 	}
 	return array, nil
 }
-
 
 func (users Matchs) FindAll() (Matchs, error) {
 	//defer dbutil.CloseSession(c)
