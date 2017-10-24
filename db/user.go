@@ -31,7 +31,7 @@ func (user *User) Persist() error {
 
 func (user *User) Merge() error {
 	c := GetDB()
-	err := c.QueryRow("update duo.\"user\"(name, email, pwd, token) VALUES ($1,$2,$3,$4) where id = $5;",user.Name,user.Email, user.Pwd,user.Token,user.Id).Scan(&user.Id)
+	err := c.QueryRow("update duo.\"user\"name = $1, email = $2, pwd = $3, token = $4 where id = $5;",user.Name,user.Email, user.Pwd,user.Token,user.Id).Scan(&user.Id)
 	if err != nil {
 		return err
 	}
