@@ -30,13 +30,12 @@ func (user *User) Persist() error {
 }
 
 func (user *User) Merge() error {
-	var err error
-	//defer dbutil.CloseSession(c)
-	//err = c.Update(bson.M{"_id": user.Id}, &user)
-	log.Println("Usuário", user.Name, "atualizado")
+	c := GetDB()
+	err := c.QueryRow("update duo.\"user\"(name, email, pwd, token) VALUES ($1,$2,$3,$4) where id = $5;",user.Name,user.Email, user.Pwd,user.Token,user.Id).Scan(&user.Id)
 	if err != nil {
 		return err
 	}
+	log.Println("Usuário", user.Name, "inserido com id "+strconv.Itoa(user.Id))
 	return nil
 }
 
@@ -52,11 +51,18 @@ func (user *User) Remove() error {
 }
 
 func (user *User) FindById(id int) error {
-	//defer dbutil.CloseSession(c)
-	//err := c.Find(bson.M{"_id": id}).One(&user)
-	//if err != nil {
-	//	return err
-	//}
+	s := GetDB()
+	row := s.QueryRow("SELECT id, token, name, admin, email FROM duo.\"user\" WHERE id = $1", user.Id)
+	err := row.Scan(&user.Id, &user.Token, &user.Name, &user.Admin, &user.Email)
+	if err == sql.ErrNoRows {
+		log.Println(err)
+		log.Println(user.Token)
+		return err
+	} else if err != nil {
+		log.Println(err)
+		log.Println(user.Token)
+		return err
+	}
 	return nil
 }
 

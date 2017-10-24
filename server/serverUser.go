@@ -90,21 +90,21 @@ func UpdateUser(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	var user db.User
-	var userUp db.User
-
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(&user)
-	userUp.FindById(user.Id)
-	if len(string(userUp.Id)) == 0 {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
 	if err != nil {
 		badRequest(w, err)
 		return
 	}
+
+	user.Admin = false
 	user.Token = base64.StdEncoding.EncodeToString([]byte(strings.ToLower(user.Name) + ":" + user.Pwd))
+	user.FindHash()
+	if err != nil {
+		badRequest(w, err)
+		return
+	}
+
 	err = user.Merge()
 	if err != nil {
 		badRequest(w, err)
