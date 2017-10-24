@@ -52,6 +52,7 @@ func (user *User) Remove() error {
 
 func (user *User) FindById(id int) error {
 	s := GetDB()
+	log.Println(user)
 	row := s.QueryRow("SELECT id, token, name, admin, email FROM duo.\"user\" WHERE id = $1", user.Id)
 	err := row.Scan(&user.Id, &user.Token, &user.Name, &user.Admin, &user.Email)
 	if err == sql.ErrNoRows {
