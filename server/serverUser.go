@@ -99,7 +99,7 @@ func UpdateUser(w http.ResponseWriter, req *http.Request) {
 
 	user.Admin = false
 	user.Token = base64.StdEncoding.EncodeToString([]byte(strings.ToLower(user.Name) + ":" + user.Pwd))
-	user.FindHash()
+	user.FindById(user.Id)
 	if err != nil {
 		badRequest(w, err)
 		return
