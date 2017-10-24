@@ -35,7 +35,7 @@ func (user *User) Merge() error {
 	if err != nil {
 		return err
 	}
-	log.Println("Usuário", user.Name, "inserido com id "+strconv.Itoa(user.Id))
+	log.Println("Usuário", user.Name, "alterado com id "+strconv.Itoa(user.Id))
 	return nil
 }
 

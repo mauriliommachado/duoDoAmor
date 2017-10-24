@@ -108,8 +108,8 @@ func UpdateUser(w http.ResponseWriter, req *http.Request) {
 		badRequest(w, err)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	resp, _ := json.Marshal(user)
+	ResponseWithJSON(w, resp, http.StatusOK)
 }
 
 func FindAllUsers(w http.ResponseWriter, req *http.Request) {
