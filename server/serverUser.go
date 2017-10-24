@@ -96,15 +96,13 @@ func UpdateUser(w http.ResponseWriter, req *http.Request) {
 		badRequest(w, err)
 		return
 	}
-
 	user.Admin = false
-	user.Token = base64.StdEncoding.EncodeToString([]byte(strings.ToLower(user.Name) + ":" + user.Pwd))
 	user.FindById(user.Id)
 	if err != nil {
 		badRequest(w, err)
 		return
 	}
-
+	user.Token = base64.StdEncoding.EncodeToString([]byte(strings.ToLower(user.Name) + ":" + user.Pwd))
 	err = user.Merge()
 	if err != nil {
 		badRequest(w, err)

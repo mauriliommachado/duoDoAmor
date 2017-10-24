@@ -14,7 +14,7 @@ type User struct {
 	Pwd        string `json:"pwd,omitempty"`
 	Token      string `json:"token,omitempty"`
 	Admin      bool   `json:"admin,omitempty"`
-	Elo        Elos  `json:"elo,omitempty"`
+	Elo        Elos   `json:"elo,omitempty"`
 }
 
 type Users []User
@@ -31,7 +31,7 @@ func (user *User) Persist() error {
 
 func (user *User) Merge() error {
 	c := GetDB()
-	err := c.QueryRow("update duo.\"user\" set name = '$1', email = '$2', pwd = '$3', token = '$4' where id = $5;",user.Name,user.Email, user.Pwd,user.Token,user.Id).Scan(&user.Id)
+	err := c.QueryRow("update duo.\"user\" set name = '" + user.Name + "', email = '" + user.Email + "', pwd = '" + user.Pwd + "', token = '" + user.Token + "' where id = " + strconv.Itoa(user.Id) + " RETURNING id;").Scan(&user.Id)
 	if err != nil {
 		return err
 	}
