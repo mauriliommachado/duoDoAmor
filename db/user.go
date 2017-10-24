@@ -71,8 +71,8 @@ func (user *User) FindLogin() bool {
 
 func (user *User) FindHash() bool {
 	s := GetDB()
-	row := s.QueryRow("SELECT id, token, name, admin FROM duo.\"user\" WHERE token = $1", user.Token)
-	err := row.Scan(&user.Id, &user.Token, &user.Name, &user.Admin)
+	row := s.QueryRow("SELECT id, token, name, admin, email FROM duo.\"user\" WHERE token = $1", user.Token)
+	err := row.Scan(&user.Id, &user.Token, &user.Name, &user.Admin, &user.Email)
 	if err == sql.ErrNoRows {
 		log.Println(err)
 		log.Println(user.Token)
