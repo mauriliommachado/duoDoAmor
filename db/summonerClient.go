@@ -33,7 +33,7 @@ type Elos [2]Elo
 
 const uriSummonerApi = "https://br1.api.riotgames.com/lol/summoner/v3/summoners/by-name/"
 const uriEloApi = "https://br1.api.riotgames.com/lol/league/v3/positions/by-summoner/"
-const TOKEN = "RGAPI-e2f2c5c2-0bce-4b15-bab0-31bfca532538"
+const TOKEN = "RGAPI-25e76cf1-14fe-4a29-a1e0-f638114eb50d"
 
 
 func FindByName(name string) (Summoner, error) {
