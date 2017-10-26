@@ -51,23 +51,21 @@ func InsertUser(w http.ResponseWriter, req *http.Request) {
 	user.Admin = false
 	user.Token = base64.StdEncoding.EncodeToString([]byte(strings.ToLower(user.Name) + ":" + user.Pwd))
 	summoner, err := db.FindByName(user.Name)
-	if err != nil {
+	if err != nil || summoner.Id == 0 {
 		badRequest(w, err)
 		return
 	}
 	user.SummonerId = summoner.Id
-	err = summoner.Persist()
-	if err != nil {
-		badRequest(w, err)
-		return
-	}
-
 	elos, err := db.FindEloById(summoner.Id)
 	if err != nil {
 		badRequest(w, err)
 		return
 	}
-
+	err = summoner.Persist()
+	if err != nil {
+		badRequest(w, err)
+		return
+	}
 	err = elos.Persist()
 	if err != nil {
 		badRequest(w, err)
