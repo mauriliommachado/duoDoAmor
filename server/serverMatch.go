@@ -98,21 +98,18 @@ func FindAllMatchs(w http.ResponseWriter, req *http.Request) {
 		unauthorized(w)
 		return
 	}
-
-	var user db.User
-	decoder := json.NewDecoder(req.Body)
-	err := decoder.Decode(&user)
+	id, err := strconv.Atoi(req.URL.Query().Get(":id"))
 	if err != nil {
 		badRequest(w, err)
 		return
 	}
-	var users db.Matchs
-	users, err = users.FindAll()
+	var match db.Match
+	match.Id = id
+	users, err := match.FindAll()
 	if err != nil {
 		badRequest(w, err)
 		return
 	}
-
 	resp, _ := json.Marshal(users)
 	ResponseWithJSON(w, resp, http.StatusOK)
 }
@@ -140,8 +137,8 @@ func FindNewMatchs(w http.ResponseWriter, req *http.Request) {
 
 func MapEndpointsMatchs(m pat.PatternServeMux, properties ServerProperties) {
 	m.Post(properties.Address, http.HandlerFunc(InsertMatch))
-	m.Put(properties.Address, http.HandlerFunc(UpdateMatch))
-	m.Del(properties.Address+"/:id", http.HandlerFunc(DeleteMatch))
-	m.Get(properties.Address, http.HandlerFunc(FindAllMatchs))
+	//m.Put(properties.Address, http.HandlerFunc(UpdateMatch))
+	//m.Del(properties.Address+"/:id", http.HandlerFunc(DeleteMatch))
+	m.Get(properties.Address+"/:id", http.HandlerFunc(FindAllMatchs))
 	m.Get(properties.Address+"/:id/new", http.HandlerFunc(FindNewMatchs))
 }
