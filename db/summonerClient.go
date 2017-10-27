@@ -5,6 +5,7 @@ import (
 	"log"
 	"encoding/json"
 	"strconv"
+	"strings"
 )
 
 type Summoner struct {
@@ -30,7 +31,7 @@ type Elos [2]Elo
 
 const uriSummonerApi = "https://br1.api.riotgames.com/lol/summoner/v3/summoners/by-name/"
 const uriEloApi = "https://br1.api.riotgames.com/lol/league/v3/positions/by-summoner/"
-const TOKEN = "RGAPI-a617157f-06a1-43f2-8f42-c64c5960b3bd"
+const TOKEN = "RGAPI-7ef1fedf-135a-4db5-92e9-54c25a94c695"
 
 func FindByName(name string) (Summoner, error) {
 	var summoner Summoner
@@ -44,7 +45,7 @@ func FindByName(name string) (Summoner, error) {
 	myClient := &http.Client{}
 	resp, err := myClient.Do(req)
 	if err != nil || resp.Status != "200 OK" {
-		log.Println(err)
+		log.Println(err, resp.Status)
 		return summoner, err
 	}
 	defer resp.Body.Close()
@@ -95,9 +96,9 @@ func (elos Elos) Persist() error {
 	c := GetDB()
 	for i, elo := range elos {
 		id, _ := strconv.ParseInt(elo.Id, 10, 64)
-		if elo.Rank == "" {
-			if i == 0 && elos[i+1].Rank != "" {
-				if elos[i+1].Rank == "RANKED_SOLO_5x5" {
+		if elo.QueueType == "" {
+			if i == 0 && elos[i+1].QueueType != "" {
+				if strings.EqualFold(elos[i+1].QueueType, "RANKED_SOLO_5x5") {
 					err := c.QueryRow("INSERT INTO duo.rank(id, \"queueType\", tier, rank, \"leaguePoints\", wins, losses) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;", id, "RANKED_FLEX_SR", "provisional", elo.Rank, elo.LeaguePoints, elo.Wins, elo.Losses).Scan(&elo.Id)
 					if err != nil {
 						return err
@@ -109,6 +110,19 @@ func (elos Elos) Persist() error {
 					}
 				}
 				continue
+			} else if i == 1 && elos[i-1].QueueType != "" {
+				if strings.EqualFold(elos[i-1].QueueType, "RANKED_SOLO_5x5") {
+					err := c.QueryRow("INSERT INTO duo.rank(id, \"queueType\", tier, rank, \"leaguePoints\", wins, losses) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;", id, "RANKED_FLEX_SR", "provisional", elo.Rank, elo.LeaguePoints, elo.Wins, elo.Losses).Scan(&elo.Id)
+					if err != nil {
+						return err
+					}
+				} else {
+					err := c.QueryRow("INSERT INTO duo.rank(id, \"queueType\", tier, rank, \"leaguePoints\", wins, losses) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;", id, "RANKED_SOLO_5x5", "provisional", elo.Rank, elo.LeaguePoints, elo.Wins, elo.Losses).Scan(&elo.Id)
+					if err != nil {
+						return err
+					}
+				}
+				return nil
 			} else {
 				err := c.QueryRow("INSERT INTO duo.rank(id, \"queueType\", tier, rank, \"leaguePoints\", wins, losses) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;", id, "RANKED_FLEX_SR", "provisional", elo.Rank, elo.LeaguePoints, elo.Wins, elo.Losses).Scan(&elo.Id)
 				if err != nil {
@@ -121,11 +135,12 @@ func (elos Elos) Persist() error {
 				log.Println(elo.Id, " inserido elo ", elo.Tier)
 				return nil
 			}
-		}
-		err := c.QueryRow("INSERT INTO duo.rank(id, \"queueType\", tier, rank, \"leaguePoints\", wins, losses) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;", id, elo.QueueType, elo.Tier, elo.Rank, elo.LeaguePoints, elo.Wins, elo.Losses).Scan(&elo.Id)
-		log.Println(elo.Id, " inserido elo ", elo.Tier)
-		if err != nil {
-			return err
+		} else {
+			err := c.QueryRow("INSERT INTO duo.rank(id, \"queueType\", tier, rank, \"leaguePoints\", wins, losses) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;", id, elo.QueueType, elo.Tier, elo.Rank, elo.LeaguePoints, elo.Wins, elo.Losses).Scan(&elo.Id)
+			log.Println(elo.Id, " inserido elo ", elo.Tier)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
