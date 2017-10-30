@@ -92,7 +92,7 @@ func (match *Match) FindNew() (Users, error) {
 func (match *Match) FindAll() (Users, error) {
 	s := GetDB()
 	var array Users
-	rows, err := s.Query("SELECT u.id, u.\"summonerId\", u.name, r.\"queueType\" , r.tier, r.rank, r.\"leaguePoints\", r.wins, r.losses FROM duo.user_match um join duo.user u on u.id = um.id_match join duo.rank r on r.id = u.\"summonerId\"  and r.\"queueType\" = 'RANKED_SOLO_5x5' join (select * from duo.user_match um where um.id_match = $1 and um.status = true) aux on aux.id = um.id_match where  um.status = true and um.id = $1;", match.Id)
+	rows, err := s.Query("SELECT u.id, u.\"summonerId\", u.name, u.discord, r.\"queueType\" , r.tier, r.rank, r.\"leaguePoints\", r.wins, r.losses FROM duo.user_match um join duo.user u on u.id = um.id_match join duo.rank r on r.id = u.\"summonerId\"  and r.\"queueType\" = 'RANKED_SOLO_5x5' join (select * from duo.user_match um where um.id_match = $1 and um.status = true) aux on aux.id = um.id_match where  um.status = true and um.id = $1;", match.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (match *Match) FindAll() (Users, error) {
 	line := 0
 	defer rows.Close()
 	for rows.Next() {
-		err = rows.Scan(&user.Id, &user.SummonerId, &user.Name, &user.Elo[line].QueueType, &user.Elo[line].Tier, &user.Elo[line].Rank, &user.Elo[line].LeaguePoints, &user.Elo[line].Wins, &user.Elo[line].Losses)
+		err = rows.Scan(&user.Id, &user.SummonerId, &user.Name, &user.Discord, &user.Elo[line].QueueType, &user.Elo[line].Tier, &user.Elo[line].Rank, &user.Elo[line].LeaguePoints, &user.Elo[line].Wins, &user.Elo[line].Losses)
 		if err != nil {
 			return nil, err
 		}

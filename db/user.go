@@ -32,7 +32,7 @@ func (user *User) Persist() error {
 
 func (user *User) Merge() error {
 	c := GetDB()
-	err := c.QueryRow("update duo.\"user\" set name = '" + user.Name + "', email = '" + user.Email + "', pwd = '" + user.Pwd + "', token = '" + user.Token + "' where id = " + strconv.Itoa(user.Id) + " RETURNING id;").Scan(&user.Id)
+	err := c.QueryRow("update duo.\"user\" set name = '" + user.Name + "', email = '" + user.Email + "', pwd = '" + user.Pwd + "', token = '" + user.Token + "', discord = '" + user.Discord + "' where id = " + strconv.Itoa(user.Id) + " RETURNING id;").Scan(&user.Id)
 	if err != nil {
 		return err
 	}
@@ -54,8 +54,8 @@ func (user *User) Remove() error {
 func (user *User) FindById(id int) error {
 	s := GetDB()
 	log.Println(user)
-	row := s.QueryRow("SELECT id, token, name, admin, email FROM duo.\"user\" WHERE id = $1", user.Id)
-	err := row.Scan(&user.Id, &user.Token, &user.Name, &user.Admin, &user.Email)
+	row := s.QueryRow("SELECT id, token, name, admin, email, discord FROM duo.\"user\" WHERE id = $1", user.Id)
+	err := row.Scan(&user.Id, &user.Token, &user.Name, &user.Admin, &user.Email,&user.Discord)
 	if err == sql.ErrNoRows {
 		log.Println(err)
 		log.Println(user.Token)
