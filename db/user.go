@@ -15,6 +15,7 @@ type User struct {
 	Token      string `json:"token,omitempty"`
 	Admin      bool   `json:"admin,omitempty"`
 	Elo        Elos   `json:"elo,omitempty"`
+	Discord    string `json:"discord"`
 }
 
 type Users []User
