@@ -61,6 +61,17 @@ func InsertUser(w http.ResponseWriter, req *http.Request) {
 		badRequest(w, err)
 		return
 	}
+	champions, err := db.FindChampionsById(summoner.Id)
+	if err != nil {
+		badRequest(w, err)
+		return
+	}
+	err = champions.Persist()
+	if err != nil {
+		badRequest(w, err)
+		return
+	}
+
 	err = summoner.Persist()
 	if err != nil {
 		badRequest(w, err)

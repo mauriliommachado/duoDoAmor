@@ -7,15 +7,16 @@ import (
 )
 
 type User struct {
-	Id         int    `json:"id,omitempty"`
-	SummonerId int    `json:"summonerId,omitempty"`
-	Name       string `json:"name,omitempty"`
-	Email      string `json:"email,omitempty"`
-	Pwd        string `json:"pwd,omitempty"`
-	Token      string `json:"token,omitempty"`
-	Admin      bool   `json:"admin,omitempty"`
-	Elo        Elos   `json:"elo,omitempty"`
-	Discord    string `json:"discord"`
+	Id         int      `json:"id,omitempty"`
+	SummonerId int      `json:"summonerId,omitempty"`
+	Name       string   `json:"name,omitempty"`
+	Email      string   `json:"email,omitempty"`
+	Pwd        string   `json:"pwd,omitempty"`
+	Token      string   `json:"token,omitempty"`
+	Admin      bool     `json:"admin,omitempty"`
+	Elo        Elos     `json:"elo,omitempty"`
+	Summoner   Summoner `json:"summoner,omitempty"`
+	Discord    string   `json:"discord"`
 }
 
 type Users []User
@@ -55,7 +56,7 @@ func (user *User) FindById(id int) error {
 	s := GetDB()
 	log.Println(user)
 	row := s.QueryRow("SELECT id, token, name, admin, email, discord FROM duo.\"user\" WHERE id = $1", user.Id)
-	err := row.Scan(&user.Id, &user.Token, &user.Name, &user.Admin, &user.Email,&user.Discord)
+	err := row.Scan(&user.Id, &user.Token, &user.Name, &user.Admin, &user.Email, &user.Discord)
 	if err == sql.ErrNoRows {
 		log.Println(err)
 		log.Println(user.Token)

@@ -31,6 +31,7 @@ type Elos [2]Elo
 
 const uriSummonerApi = "https://br1.api.riotgames.com/lol/summoner/v3/summoners/by-name/"
 const uriEloApi = "https://br1.api.riotgames.com/lol/league/v3/positions/by-summoner/"
+const uriChampionApi = "https://br1.api.riotgames.com/lol/champion-mastery/v3/champion-masteries/by-summoner/"
 const TOKEN = "RGAPI-089e59bf-9614-4fdf-a62d-965e404b0b2d"
 
 func FindByName(name string) (Summoner, error) {
@@ -80,6 +81,37 @@ func FindEloById(id int) (Elos, error) {
 		elo[i].Id = strconv.Itoa(id)
 	}
 	return elo, nil
+}
+
+
+func FindChampionsById(id int) (Champions, error) {
+	var champion Champions
+	req, err := http.NewRequest(http.MethodGet, uriChampionApi+strconv.Itoa(id), nil)
+	req.Header.Set("X-Riot-Token", TOKEN)
+	if err != nil {
+		log.Println(err)
+		return champion, err
+	}
+	myClient := &http.Client{}
+	resp, err := myClient.Do(req)
+	if err != nil || resp.Status != "200 OK" {
+		log.Println(err)
+		return champion, err
+	}
+	defer resp.Body.Close()
+	if err := json.NewDecoder(resp.Body).Decode(&champion);
+		err != nil {
+		log.Println(err)
+		return champion, err
+	}
+	for i := range champion {
+		if i == 3 {
+			champion = append(champion[:3])
+			break
+		}
+		champion[i].SummonerId = id
+	}
+	return champion, nil
 }
 
 func (user *Summoner) Persist() error {
