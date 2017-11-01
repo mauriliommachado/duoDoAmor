@@ -36,7 +36,7 @@ func (champions Champions) FindById(id int) (Champions, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var c Champion
-		err := rows.Scan(&c.SummonerId, &c.ChampionLevel, &c.ChampionPoints, &c.LastPlayTime)
+		err := rows.Scan(&c.SummonerId, &c.ChampionLevel, &c.ChampionPoints, &c.ChampionId, &c.LastPlayTime)
 		if err != nil {
 			return nil, err
 		}
