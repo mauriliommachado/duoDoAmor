@@ -87,7 +87,7 @@ func (match *Match) FindNew() (Users, error) {
 		return nil, err
 	}
 	for _,item :=range array{
-		item.Champions,err = item.Champions.FindById(item.Id)
+		item.Champions,err = item.Champions.FindById(item.SummonerId)
 		if err != nil {
 			return nil, err
 		}
@@ -117,7 +117,7 @@ func (match *Match) FindAll() (Users, error) {
 		return nil, err
 	}
 	for _,item :=range array{
-		item.Champions,err = item.Champions.FindById(item.Id)
+		item.Champions,err = item.Champions.FindById(item.SummonerId)
 		if err != nil {
 			return nil, err
 		}
