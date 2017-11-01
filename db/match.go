@@ -86,21 +86,19 @@ func (match *Match) FindNew() (Users, error) {
 	if err != nil {
 		return nil, err
 	}
-	var aux Users
-	for _, item := range array {
-		item.Champions, err = item.Champions.FindById(item.SummonerId)
+	for i, item := range array {
+		array[i].Champions, err = item.Champions.FindById(item.SummonerId)
 		if err != nil {
 			return nil, err
 		}
-		aux = append(aux, item)
 	}
-	return aux, nil
+	return array, nil
 }
 
 func (match *Match) FindAll() (Users, error) {
 	s := GetDB()
 	var array Users
-	rows, err := s.Query("SELECT u.id, u.\"summonerId\", u.name, u.discord, r.\"queueType\" , r.tier, r.rank, r.\"leaguePoints\", r.wins, r.losses FROM duo.user_match um join duo.user u on u.id = um.id_match join duo.rank r on r.id = u.\"summonerId\" and r.\"queueType\" = 'RANKED_SOLO_5x5' join (select * from duo.user_match um where um.id_match = $1 and um.status = true) aux on aux.id = um.id_match where  um.status = true and um.id = $1;", match.Id)
+	rows, err := s.Query("SELECT u.id, u.\"summonerId\", u.name, u.email, r.\"queueType\", r.tier, r.rank, r.\"leaguePoints\", r.wins, r.losses FROM duo.\"user\" u join duo.rank r on r.id = u.\"summonerId\" WHERE u.id <> $1 AND u.id not in(select id_match from duo.user_match um where um.id = $1) order by u.id, r.\"queueType\";", match.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -108,23 +106,27 @@ func (match *Match) FindAll() (Users, error) {
 	line := 0
 	defer rows.Close()
 	for rows.Next() {
-		err = rows.Scan(&user.Id, &user.SummonerId, &user.Name, &user.Discord, &user.Elo[line].QueueType, &user.Elo[line].Tier, &user.Elo[line].Rank, &user.Elo[line].LeaguePoints, &user.Elo[line].Wins, &user.Elo[line].Losses)
+
+		err = rows.Scan(&user.Id, &user.SummonerId, &user.Name, &user.Email, &user.Elo[line].QueueType, &user.Elo[line].Tier, &user.Elo[line].Rank, &user.Elo[line].LeaguePoints, &user.Elo[line].Wins, &user.Elo[line].Losses)
 		if err != nil {
 			return nil, err
 		}
-		array = append(array, user)
+		if line == 0 {
+			line++
+		} else {
+			array = append(array, user)
+			line = 0
+		}
 	}
 	err = rows.Err()
 	if err != nil {
 		return nil, err
 	}
-	var aux Users
-	for _, item := range array {
-		item.Champions, err = item.Champions.FindById(item.SummonerId)
+	for i, item := range array {
+		array[i].Champions, err = item.Champions.FindById(item.SummonerId)
 		if err != nil {
 			return nil, err
 		}
-		aux = append(aux, item)
 	}
-	return aux, nil
+	return array, nil
 }
