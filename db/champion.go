@@ -3,8 +3,6 @@ package db
 import (
 	"log"
 	"strconv"
-	"os/user"
-	"database/sql"
 )
 
 type Champion struct {
