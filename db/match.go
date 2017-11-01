@@ -77,7 +77,7 @@ func (match *Match) FindNew() (Users, error) {
 		}
 		if line == 0 {
 			line++
-		}else {
+		} else {
 			array = append(array, user)
 			line = 0
 		}
@@ -86,13 +86,15 @@ func (match *Match) FindNew() (Users, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _,item :=range array{
-		item.Champions,err = item.Champions.FindById(item.SummonerId)
+	var aux Users
+	for _, item := range array {
+		item.Champions, err = item.Champions.FindById(item.SummonerId)
 		if err != nil {
 			return nil, err
 		}
+		aux = append(aux, item)
 	}
-	return array, nil
+	return aux, nil
 }
 
 func (match *Match) FindAll() (Users, error) {
@@ -116,11 +118,13 @@ func (match *Match) FindAll() (Users, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _,item :=range array{
-		item.Champions,err = item.Champions.FindById(item.SummonerId)
+	var aux Users
+	for _, item := range array {
+		item.Champions, err = item.Champions.FindById(item.SummonerId)
 		if err != nil {
 			return nil, err
 		}
+		aux = append(aux, item)
 	}
-	return array, nil
+	return aux, nil
 }
