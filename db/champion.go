@@ -3,6 +3,8 @@ package db
 import (
 	"log"
 	"strconv"
+	"os/user"
+	"database/sql"
 )
 
 type Champion struct {
@@ -25,6 +27,24 @@ func (champions Champions) Persist() error {
 		log.Println("Champion", champion.ChampionId, "inserido para "+strconv.Itoa(champion.SummonerId))
 	}
 	return nil
+}
+
+func (champions Champions) FindById(id int) (Champions, error) {
+	s := GetDB()
+	rows,err := s.Query("SELECT \"summonerId\", level, points, id, \"ultimoGame\" FROM duo.champion c where c.\"summonerId\" = $1", id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var c Champion
+		err := rows.Scan(&c.SummonerId, &c.ChampionLevel, &c.ChampionPoints, &c.LastPlayTime)
+		if err != nil {
+			return nil, err
+		}
+		champions = append(champions, c)
+	}
+	return champions,nil
 }
 
 func (champion *Champion) Merge() error {

@@ -7,16 +7,17 @@ import (
 )
 
 type User struct {
-	Id         int      `json:"id,omitempty"`
-	SummonerId int      `json:"summonerId,omitempty"`
-	Name       string   `json:"name,omitempty"`
-	Email      string   `json:"email,omitempty"`
-	Pwd        string   `json:"pwd,omitempty"`
-	Token      string   `json:"token,omitempty"`
-	Admin      bool     `json:"admin,omitempty"`
-	Elo        Elos     `json:"elo,omitempty"`
-	Summoner   Summoner `json:"summoner,omitempty"`
-	Discord    string   `json:"discord"`
+	Id         int       `json:"id,omitempty"`
+	SummonerId int       `json:"summonerId,omitempty"`
+	Name       string    `json:"name,omitempty"`
+	Email      string    `json:"email,omitempty"`
+	Discord    string    `json:"discord"`
+	Pwd        string    `json:"pwd,omitempty"`
+	Token      string    `json:"token,omitempty"`
+	Admin      bool      `json:"admin,omitempty"`
+	Elo        Elos      `json:"elo,omitempty"`
+	Summoner   Summoner  `json:"summoner,omitempty"`
+	Champions  Champions `json:"champion,omitempty"`
 }
 
 type Users []User
