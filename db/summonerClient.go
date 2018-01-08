@@ -32,13 +32,12 @@ type Elos [2]Elo
 const uriSummonerApi = "https://br1.api.riotgames.com/lol/summoner/v3/summoners/by-name/"
 const uriEloApi = "https://br1.api.riotgames.com/lol/league/v3/positions/by-summoner/"
 const uriChampionApi = "https://br1.api.riotgames.com/lol/champion-mastery/v3/champion-masteries/by-summoner/"
-const TOKEN = "RGAPI-4955af98-60cd-42a1-bb06-b339f7654749"
 
 func FindByName(name string) (Summoner, error) {
 	var summoner Summoner
 
 	req, err := http.NewRequest(http.MethodGet, uriSummonerApi+name, nil)
-	req.Header.Set("X-Riot-Token", TOKEN)
+	req.Header.Set("X-Riot-Token", getToken())
 	if err != nil {
 		log.Println(err)
 		return summoner, err
@@ -57,10 +56,18 @@ func FindByName(name string) (Summoner, error) {
 	return summoner, nil
 }
 
+func getToken() (string) {
+	port := os.Getenv("RIOT_TOKEN")
+	if port == "" {
+		log.Println("Token vazio")
+	}
+	return port
+}
+
 func FindEloById(id int) (Elos, error) {
 	var elo Elos
 	req, err := http.NewRequest(http.MethodGet, uriEloApi+strconv.Itoa(id), nil)
-	req.Header.Set("X-Riot-Token", TOKEN)
+	req.Header.Set("X-Riot-Token", getToken())
 	if err != nil {
 		log.Println(err)
 		return elo, err
@@ -87,7 +94,7 @@ func FindEloById(id int) (Elos, error) {
 func FindChampionsById(id int) (Champions, error) {
 	var champion Champions
 	req, err := http.NewRequest(http.MethodGet, uriChampionApi+strconv.Itoa(id), nil)
-	req.Header.Set("X-Riot-Token", TOKEN)
+	req.Header.Set("X-Riot-Token", getToken())
 	if err != nil {
 		log.Println(err)
 		return champion, err
